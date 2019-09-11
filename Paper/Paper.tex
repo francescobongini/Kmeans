@@ -55,17 +55,17 @@ My results indicate that the parallel implementation has benefits regarding its 
 
 
 \section{Introduction}
-K-means is a simple unsupervised learning algorithm that is used to solve clustering problems. 
+K-means is a simple unsupervised learning algorithm used to solve clustering problems. 
 Definited the parameter \emph{K} i.e. the numer of clusters, the algorithm chooses randomly \emph{K} points (called centroids).
 Each point of the dataset is assigned to the cluster with the closest centroid.
 After all points are assigned, the positions of the \emph{k} centroids are recalculated with the mean of the cluster.
-The algorithm repeates the recalculates until the centroids don't change more.
+The algorithm repeates the recalculates until the centroids don't change anymore.
 Here the pseudocode of the K-means clustering:
 \begin{algorithm}
 
-\label{Kmeans}
+\label{K-means}
 
-\caption{Kmeans}
+\caption{K-means}
 
 
 1: Select K points as the initial centroids.\\
@@ -78,12 +78,12 @@ Here the pseudocode of the K-means clustering:
 \begin{figure}[H]
 \centering
 \includegraphics[width=8.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/esempioKmeans"}.png}
-\caption{Kmeans algorithm in different iterations}\label{example}
+\caption{K-means algorithm in different iterations}\label{example}
 \end{figure}
 Given two points $p$ and $q$ in $n$ dimensions, their euclidean distance is defined as: $$d(p,q)=\sqrt{\sum_{i=1}^{n}(p_i-q_i)^2}$$ 
 
 \section{Plotting clusters}
-After have calculated the clusters with Kmeans algorithm, we plot them. Python provides interesting libraries to plot our clusters in 3D.\\
+After have calculated the clusters with K-means algorithm, we plot them. Python provides interesting libraries to plot our clusters in 3D.\\
 The dataset is a mixture of 3 dimensions points from Gaussian distributions with mean 0, 3 and 6 and standard deviation equal to 0.2 for each one. 
 Given the standard deviation very small, the algorithm converges in barely 4 iterations. Here the plots in 2 and 3 dimensions:\\ \\
 \begin{figure}[H]
@@ -101,7 +101,7 @@ Given the standard deviation very small, the algorithm converges in barely 4 ite
 
 
 \section{Sequential version}
-Sequential version of the Kmeans algorithm consists to calculate and update the new centroids until they differ from the old centroids less than the $\epsilon$ value. 
+Sequential version of the K-means algorithm consists to calculate and update the new centroids until they differ from the old centroids less than the $\epsilon$ value. 
 Here is the pseudocode of the sequential version:
 \begin{algorithm}
 \label{sequenziale}
@@ -116,15 +116,15 @@ Here is the pseudocode of the sequential version:
 \end{algorithmic}
 \end{algorithm} 
 \\
-The choice of the $\epsilon$ value may affect the speed and the precision of the algorithm. The points are definited as PointND object. It consists in vector of floats i.e. the coordinates and the attribute Cluster. Cluster is an integer-type that indicates the class to which each point corresponds. During each iteration of the kmeans the points don't change, but may occur to the Cluster. An other important data structure is the vector of PointND, used to define the list of centroids.
+The choice of the $\epsilon$ value may affect the speed and the precision of the algorithm. The points are definited as PointND object. It consists in vector of floats i.e. the coordinates and the attribute Cluster. Cluster is an integer-type that indicates the class to which each point corresponds. During each iteration of the K-means the points don't change, but may occur to the Cluster. An other important data structure is the vector of PointND, used to define the list of centroids.
 Each point of the dataset is visited sequentially to calculate the distance from the $K$ centroids.
 
 \section{Parallel version}
 OpenMP  is  a  standard  Application  Programming 
 Interface of C, C++ and FORTRAN for a shared memory 
-parallel programming. It allows to parallel the exacution of Kmeans in a very simple way.
+parallel programming. It allows to parallel the exacution of K-means in a very simple way.
 In fact, after definited the number of $threads$, the command \emph{\#pragma omp parallel for} allows to each $thread$ to compute an 
-indipendent part of the data. This is possible because the iterates of the loop are indipendent of each other and the number of iterates is known in advance. 
+indipendent part of the data. This is possible because each iteration is indipendent from the other one.
 Given that the steps are the same for each data point, static schedule is assigned by default.
 Here is the pseudocode of the parallel version:
 \begin{algorithm}
@@ -177,7 +177,7 @@ In the other examples I used an istance from Amazon AWS.
 5 threads: \quad113.157 seconds\\
 6 threads: \quad111.582 seconds\\
 7 threads: \quad112.294 seconds\\
-Increasing the number of threads overhead increases, so we need to find the optimal number of threads.
+Increasing the number of threads the overhead increases, so we need to find the optimal number of threads. In particular, 4 threads is the optimal choice.
 
 \subsection{2M points}
 \textbf{Dataset}: 2 millions points in 4 dimensions from Gaussian distributions with mean 1 and standard deviation 1. \\
@@ -210,7 +210,7 @@ Increasing the number of threads overhead increases, so we need to find the opti
 A further parallelization of the problem is possible. In fact, after calculating the distance between points and centroids, it's possible to
 parallelize the external loop of the calculation of the new centroids. In this way, each thread calculate the new centroid of a different cluster.
 For istance, thread 0 computes the cluster 0, thread 1 computes the cluster 1 etc.. . It is important therefore that $K$ is big enough, to use 
-all cores availables. Given that the steps are the same for each cluster, there are slight differences between static and dynamic schedule.
+all cores availables. Given that the steps are the same for each cluster. There are slight differences between static and dynamic schedule.
 Static schedule is assigned by default.\\
 Here is the pseudocode of the new parallel version:
 \begin{algorithm}
@@ -230,8 +230,8 @@ Here is the pseudocode of the new parallel version:
 \end{algorithmic}
 \end{algorithm}
 
- Now we consider the same example on the subsection 5.2. with the further parallelization. Even though all cores are not used given 
-that $K=3$, we expect an improvement of the performances. Same istance of amazon EC2 is used, with
+ Now we consider the same example of the subsection 5.2. with the further parallelization. Even though all cores are not used given 
+that $K=3$, we expect an improvement of the performances. Same istance of amazon EC2 is used with
 8 vCPUs. \\
 \subsection{2M points with further parallelization}
 \textbf{Dataset}: 2 millions points in 4 dimensions from Gaussian distributions with mean 1 and standard deviation 1. \\
@@ -259,8 +259,8 @@ that $K=3$, we expect an improvement of the performances. Same istance of amazon
 \includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/speedup2Mnew"}.png}
 \caption{Speedup OpenMP}\label{speedup2M}
 \end{figure}
-We can see the new performances are better. With 8 threads the new speedup is 5.57 against the old one with 3.14.
-In this case the speedup type is linear until thread 8, in fact with 9 and 10 threads it leads in a overhead.
+We can note a big improvement. With 8 threads the new speedup is 5.57 against the old one with 3.14.
+In this case the speedup trend is linear until thread 8, in fact with 9 and 10 threads it leads in a overhead.
 
 \subsection{K-means performances changing K}
 The biggest disadvantage of the second parallelization is that the number of threads used depends on the value of $K$.
