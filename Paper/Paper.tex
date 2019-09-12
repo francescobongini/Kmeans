@@ -122,7 +122,7 @@ Each point of the dataset is visited sequentially to calculate the distance from
 \section{Parallel version}
 OpenMP  is  a  standard  Application  Programming 
 Interface of C, C++ and FORTRAN for a shared memory 
-parallel programming. It allows to parallel the exacution of K-means in a very simple way.
+parallel programming. It allows to parallelize the execution of K-means in a very simple way.
 In fact, after definited the number of $threads$, the command \emph{\#pragma omp parallel for} allows to each $thread$ to compute an 
 indipendent part of the data. This is possible because each iteration is indipendent from the other one.
 Given that the steps are the same for each data point, static schedule is assigned by default.

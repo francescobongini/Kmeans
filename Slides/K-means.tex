@@ -1,0 +1,271 @@
+\documentclass[9pt]{beamer}
+
+%%% Dichiarazione dei pacchetti standard.
+%\usepackage[italian]{babel}
+\usepackage{graphics}
+\usepackage{epstopdf}
+\usepackage{amsmath,amsthm,amstext,amsbsy,amsopn,amsfonts}
+%\usepackage[italian]{babel}
+\usepackage{amstext,amssymb,amsopn,amsthm}
+\usepackage{amsmath,natbib}
+\usepackage{amssymb,amsthm,bm,bbold}
+\usepackage[mathscr]{eucal}
+\usepackage{geometry}
+\setbeamercovered{transparent}
+\usepackage{array}
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+  % or whatever (possibly just delete it)\usepackage[english]{babel}
+% or whatever
+% or whatever
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{multirow}
+\usepackage{hyperref} %per il link
+\usepackage{color}
+\usepackage{amssymb}
+\usepackage{newcent}
+\usepackage{algorithm}
+\usepackage{verbatim}
+\usepackage{ragged2e}
+\usepackage{lipsum}
+\usepackage{pgffor}
+\usepackage{caption}
+\hypersetup{
+    colorlinks,
+    urlcolor=blue
+}
+\setbeamertemplate{caption}[numbered]
+%\setcounter{MaxMatrixCols}{10}
+\setbeamertemplate{footline}[frame number]
+
+%\setcounter{MaxMatrixCols}{10}
+\newcommand*\oldmacro{}%
+\let\oldmacro\insertshorttitle%
+\renewcommand*\insertshorttitle{%
+  \oldmacro\hfill%
+  \insertframenumber\,/\,\inserttotalframenumber}
+\usetheme{Malmoe}
+
+%\usepackage{times}
+\usepackage[T1]{fontenc}
+\usecolortheme{whale}
+\title[Parallel Computing]{Parallelizing the K-means algorithm with OpenMP}% (optional, use only with long paper titles)
+\author[Curriculum Data Science] % (optional, use only with lots of authors)
+{Francesco Bongini
+%\vspace{0.1cm}
+}
+\date[]{September 2019
+}
+%(optional, should be abbreviation of conference name)
+
+\begin{document}
+\frame{\titlepage{}}
+\frame{\frametitle{Introduction}
+\justifying
+For physical limitations, in the recent decades computers
+have increased the number of cores rather than increasing
+the speed of each one. To get the best beneficts of the computational
+power, we need to build new versions of existing
+algorithms. \\ \vspace{0.5cm}
+In particular, programs that process big amount of data need to be parallelized.
+K-means clustering is one of them.
+
+}
+
+\frame{\frametitle{Clustering}
+Clustering is a Machine Learning technique that consixts to group similar points together.
+\\ 
+In theory, data points that are in the same group should have similar features.
+\begin{figure}[H]
+\centering
+\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/1"}.jpg}
+\caption{From data points to clusters}\label{1}
+\end{figure}
+}
+
+
+\frame{\frametitle{K-means}
+\justifying
+K-means is a simple unsupervised learning algorithm
+used to solve clustering problems. \\
+The parameter K represents the number of groups in the data. \\
+The algorithm uses the euclidean distance $$d(p,q)=\sqrt{\sum_{i=1}^{n}(p_i-q_i)^2}$$ 
+Other distances can be used.
+}
+
+\frame{\frametitle{How it works}
+\justifying
+
+\begin{enumerate}
+\justifying
+\vspace{0.3cm}
+\item The algorithm chooses randomly K points, called \textbf{centroids}.
+\vspace{0.3cm} 
+\item Each data point is assigned to the cluster with the \textbf{closest} centroid
+\vspace{0.3cm} 
+\item  Recompute the centroids with the mean.
+ \vspace{0.3cm}
+\item Repete untill centroids don't change.
+ \vspace{0.3cm}
+\end{enumerate}
+}
+
+
+\frame{\frametitle{How it works}
+\justifying
+\begin{figure}[H]
+\centering
+\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/esempioKmeans"}.png}
+\caption{From data points to 2 clusters}\label{1}
+\end{figure}
+}
+
+
+\frame{\frametitle{Pros and cons}
+\textbf{Benefits}:
+\begin{itemize}
+\justifying
+\vspace{0.3cm}
+\item[$\bullet$] Simple
+\vspace{0.3cm} 
+\item[$\bullet$] Flexible
+\vspace{0.3cm} 
+\item[$\bullet$]  Time complexity
+ \vspace{0.3cm}
+\item[$\bullet$] Accuracy
+ \vspace{0.3cm}
+\end{itemize}
+
+\textbf{drawbacks}:
+\begin{itemize}
+\vspace{0.3cm}
+\item[$\bullet$] No-optimal set of clusters
+ \vspace{0.3cm}
+\item[$\bullet$] Lacks consistency
+ \vspace{0.3cm}
+\item[$\bullet$] Sensitivity to scale
+\end{itemize}
+}
+
+\frame{\frametitle{Sequential version}
+\justifying
+\begin{algorithm}[H]
+\label{sequenziale}
+\caption{Sequential version}
+\textbf{While} centroids change \textbf{do}\\
+\hspace*{12pt} \textbf{For} each point \textbf{do}\\
+\hspace*{12pt}\hspace*{12pt}point.setCluster()\\
+\hspace*{12pt}\textbf{EndFor}\\
+\hspace*{12pt}upgradeCentroids()\\
+\textbf{EndWhile}
+\end{algorithm} 
+Sequential version of the K-means algorithm consists to calculate and update the new centroids until they differ from the old centroids less than the $\epsilon$ value. 
+}
+
+\frame{\frametitle{Parallel version}
+\justifying
+\begin{algorithm}[H]
+\label{parallelo}
+\caption{Parallel version}
+\textbf{While} centroids change \textbf{do}\\
+\hspace*{12pt} \#pragma omp parallel for\\
+\hspace*{12pt} \textbf{For} each point \textbf{do}\\
+\hspace*{12pt}\hspace*{12pt}point.setCluster()\\
+\hspace*{12pt}\textbf{EndFor}\\
+\hspace*{12pt}upgradeCentroids()\\
+\textbf{EndWhile}
+\end{algorithm} 
+OpenMP allows to parallelize the execution of K-means in a very simple way. In fact, after definited the number of $threads$, the command \emph{\#pragma omp parallel for} allows to each $thread$ to compute an 
+indipendent part of the data.
+}
+
+
+\frame{\frametitle{Parallel version}
+\justifying
+Note that "upgradeCentroids()" isn't parallelized. That is because different data points might be added to the sum of them to calculate the centroid at the same time, leading to Write-After-Write (WAW) hazard.\vspace{1cm}
+It happens when different threads save their results to the same variable causing the loss of results of the previous threads.
+}
+
+\frame{\frametitle{Speed-up}
+\justifying
+Speedup is an index that measures the relative performance of two systems processing the same problem.
+It is defined as: $$S_p=t_s/t_p$$ where P is the number of processors, $t_s$ is the completion time of the sequential 
+algorithm and $t_p$ is the completion time of the parallel algorithm
+}
+
+\frame{\frametitle{Analysis}
+\justifying
+The speed-up analysis consists to compare sequential and parallel version through speed-up index. \\ \vspace{0.3cm}
+In the first example, I used my laptop dualcore, in the others the t2.2xlarge Amazon Ec2 Instance with 8 vCPUs.
+}
+
+
+\frame{\frametitle{500k data points}
+\justifying
+\begin{figure}[H]
+\centering
+\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/miopc"}.png}
+\caption{Speed-up using my laptop and setting $\epsilon$=0.001}\label{1}
+\end{figure}
+}
+
+\frame{\frametitle{2M data points}
+\justifying
+\begin{figure}[H]
+\centering
+\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/speedup2M"}.png}
+\caption{t2.2xlarge Amazon Ec2 Spot Instance with 8 vCPUs}\label{1}
+\end{figure}
+}
+
+\frame{\frametitle{A further parallelization}
+\justifying
+It's possibile to parallelize the second part of the algorithm, if any new centroid is calculated with a different thread.
+In this way mutual exclusion is guaranteed. In the first part of the algorithm we set 8 threads, while the second part the number is equal to K.
+}
+
+
+\frame{\frametitle{200k data points with different K}
+\begin{figure}[H]
+\centering
+\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/200k"}.png}
+\caption{Speed-up with $\epsilon$=0.01}\label{1}
+\justifying
+\end{figure}
+}
+
+
+\frame{\frametitle{200k data points with different K}
+\begin{figure}[H]
+\centering
+\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/new200k"}.png}
+\caption{Speed-up with 200 iterations}\label{1}
+\justifying
+\end{figure}
+}
+
+\frame{\frametitle{Inefficient parellization}
+\begin{figure}[H]
+\centering
+\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/speedup10"}.png}
+\caption{speed-up with 10 data points}\label{1}
+\justifying
+\end{figure}
+}
+
+\frame{\frametitle{Conclusions}
+\justifying
+OpenMP has proven to be a great candidate for the parallelization of the K-means clustering. In fact, in some cases we reached 7 of speed-up using 8 cores. Future development could affect other clustering methods like DB-SCAN and Mean Shift.
+
+}
+
+
+
+
+
+
+
+
+
+\end{document}
