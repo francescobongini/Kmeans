@@ -123,13 +123,13 @@ Other distances can be used.
 
 
 \frame{\frametitle{Pros and cons}
-\textbf{Benefits}:
+\textbf{Pros}:
 \begin{itemize}
 \justifying
 \vspace{0.3cm}
 \item[$\bullet$] Simple
 \vspace{0.3cm} 
-\item[$\bullet$] Flexible
+\item[$\bullet$] Easy to implement
 \vspace{0.3cm} 
 \item[$\bullet$]  Time complexity
  \vspace{0.3cm}
@@ -137,7 +137,7 @@ Other distances can be used.
  \vspace{0.3cm}
 \end{itemize}
 
-\textbf{drawbacks}:
+\textbf{Cons}:
 \begin{itemize}
 \vspace{0.3cm}
 \item[$\bullet$] No-optimal set of clusters
@@ -157,7 +157,7 @@ Other distances can be used.
 \hspace*{12pt} \textbf{For} each point \textbf{do}\\
 \hspace*{12pt}\hspace*{12pt}point.setCluster()\\
 \hspace*{12pt}\textbf{EndFor}\\
-\hspace*{12pt}upgradeCentroids()\\
+\hspace*{12pt}updateCentroids()\\
 \textbf{EndWhile}
 \end{algorithm} 
 Sequential version of the K-means algorithm consists to calculate and update the new centroids until they differ from the old centroids less than the $\epsilon$ value. 
@@ -173,7 +173,7 @@ Sequential version of the K-means algorithm consists to calculate and update the
 \hspace*{12pt} \textbf{For} each point \textbf{do}\\
 \hspace*{12pt}\hspace*{12pt}point.setCluster()\\
 \hspace*{12pt}\textbf{EndFor}\\
-\hspace*{12pt}upgradeCentroids()\\
+\hspace*{12pt}updateCentroids()\\
 \textbf{EndWhile}
 \end{algorithm} 
 OpenMP allows to parallelize the execution of K-means in a very simple way. In fact, after definited the number of $threads$, the command \emph{\#pragma omp parallel for} allows to each $thread$ to compute an 
@@ -183,7 +183,7 @@ indipendent part of the data.
 
 \frame{\frametitle{Parallel version}
 \justifying
-Note that "upgradeCentroids()" isn't parallelized. That is because different data points might be added to the sum of them to calculate the centroid at the same time, leading to Write-After-Write (WAW) hazard.\vspace{1cm}
+Note that "updateCentroids()" isn't parallelized. That is because different data points might be added to the sum of them to calculate the centroid at the same time, leading to Write-After-Write (WAW) hazard.\vspace{1cm}
 It happens when different threads save their results to the same variable causing the loss of results of the previous threads.
 }
 
@@ -222,11 +222,37 @@ In the first example, I used my laptop dualcore, in the others the t2.2xlarge Am
 \frame{\frametitle{A further parallelization}
 \justifying
 It's possibile to parallelize the second part of the algorithm, if any new centroid is calculated with a different thread.
-In this way mutual exclusion is guaranteed. In the first part of the algorithm we set 8 threads, while the second part the number is equal to K.
+In this way mutual exclusion is guaranteed. \\
+\begin{algorithm}[H]
+\label{parallelo}
+\caption{Parallel version}
+\textbf{While} centroids change \textbf{do}\\
+\hspace*{12pt} \#pragma omp parallel for\\
+\hspace*{12pt} \textbf{For} each point \textbf{do}\\
+\hspace*{12pt}\hspace*{12pt}point.setCluster()\\
+\hspace*{12pt}\textbf{EndFor}\\
+\hspace*{12pt} \#pragma omp parallel for\\
+\hspace*{12pt} \textbf{For} each K \textbf{do}\\
+\hspace*{24pt}updateCentroids()\\
+\hspace*{12pt}\textbf{EndFor}\\
+\textbf{EndWhile}
+\end{algorithm}
+}
+
+\frame{\frametitle{A further parallelization}
+\justifying
+\begin{figure}[H]
+\centering
+\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/speedup2Mnew"}.png}
+\caption{Speedup OpenMP}\label{speedup2M}
+\end{figure}
+Same example but parallelizing the second part with K=3.
+
 }
 
 
 \frame{\frametitle{200k data points with different K}
+In the first part of this example we set 8 threads, while on the second part the number is equal to K.
 \begin{figure}[H]
 \centering
 \includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/200k"}.png}

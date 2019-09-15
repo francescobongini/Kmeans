@@ -31,7 +31,7 @@
 \begin{document}
 
 %%%%%%%%% TITLE
-\title{Comparative analysis between sequencial and parallel version of the K-means algorithm in C++ }
+\title{Comparative analysis between sequencial and distributed version of the Twitter sentiment analysis in Hadoop framework}
 
 \author{Francesco Bongini\\
 \tt\small bongini.francesco@gmail.com}
@@ -46,111 +46,101 @@
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
-For physical limitations, in the recent decades computers have increased the number of cores rather than increasing the speed of each one.
-To get the best beneficts of the computational power, we need to build new versions of existing algorithms.
-This paper presents the results of a comperative analysis between sequencial
-and parallel version of the K-means clustering. The parallel code is implemented using OpenMP in C++.
-My results indicate that the parallel implementation has benefits regarding its speed and the amount of data processed in the same quantity of time. 
+
+In the era of the Internet, social media has become an integral part of modern society. Social networks like Facebook, Instagram and Twitter get huge amount of data each day. Traditional systems are useful in working with data of small size, but they can’t manage such a huge amount of data from social networks.
+Hadoop framework stems from the need to process large amounts of data.
+In this paper, I compare the sequential and distributed version of the Twitter sentiment analysis. The aim is not to provide a perfect classifier, rather we want to show the speedup reachable from the distributed version with Hadoop. From the experimental results we see that hadoop gets big benefits regarding the speed and the
+amount of data processed in the same quantity of time.
+
+ 
 \end{abstract}
 
 
 \section{Introduction}
-K-means is a simple unsupervised learning algorithm used to solve clustering problems. 
-Definited the parameter \emph{K} i.e. the numer of clusters, the algorithm chooses randomly \emph{K} points (called centroids).
-Each point of the dataset is assigned to the cluster with the closest centroid.
-After all points are assigned, the positions of the \emph{k} centroids are recalculated with the mean of the cluster.
-The algorithm repeates the recalculates until the centroids don't change anymore.
-Here the pseudocode of the K-means clustering:
+Twitter is one of the most famous social network in the world. Every day millions of tweets are being posted. Sentiment analysis allows us to know a person’s behavior toward a particular topic.
+Sentiment analysis is extracting the perception of people towards a particular issue, brand and scheme from textual data.
+In this article, sentiment analysis is performed on tweets in order to classify whether a tweet is positive or negative. The dataset contains 1.6 millions of tweets with their relative sentiment, \lq \lq 0" for negative tweets and\lq \lq1" for posititve tweets. The sentences are split into words. This step is also called tokenization. These tokenized words are taken as an input for identifying opinion words.\\
+Sentimental analysis considers two phases: training and classification, performed both using LingPipe library. We consider two versions: the sequential version and the distribuited, which uses the MapReduce framework in the classification part. The whole code is written in Java.
+The main core components of Hadoop framework are MapReduce and HDFS. MapReduce is a programming model for processing larger data sets and HDFS is a Hadoop Distributed File System that stores data in the form of memory blocks and distributes them across clusters.
+
+
+\section{Training the model}
+LingPipe library allows to train the model very easily. In this phase, the algorithm learns from some examples how recognize negative and positive tweets. The approach is therefore supervised. The training phase is sequential because each tweet must be trained by a single model. In particular, parallel version would need a critical section to allow threads to access the shared memory. In order to guarantee the mutual exclusion, we lose the benefits of the parallelization.
+\\The model is trained in a sample of tweets in order to avoid overtraining and long waiting times. Here is the pseudocode:\\
 \begin{algorithm}
-
-\label{K-means}
-
-\caption{K-means}
-
-
-1: Select K points as the initial centroids.\\
-2: repeat\\
-3: Form K clusters by assigning all points to the closest centroids.\\
-4: Recompute the centroid of each cluster with the mean of the points in each cluster.\\
-5: Until the centroids don't change.
-\end{algorithm}
-\\
-\begin{figure}[H]
-\centering
-\includegraphics[width=8.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/esempioKmeans"}.png}
-\caption{K-means algorithm in different iterations}\label{example}
-\end{figure}
-Given two points $p$ and $q$ in $n$ dimensions, their euclidean distance is defined as: $$d(p,q)=\sqrt{\sum_{i=1}^{n}(p_i-q_i)^2}$$ 
-
-\section{Plotting clusters}
-After have calculated the clusters with K-means algorithm, we plot them. Python provides interesting libraries to plot our clusters in 3D.\\
-The dataset is a mixture of 3 dimensions points from Gaussian distributions with mean 0, 3 and 6 and standard deviation equal to 0.2 for each one. 
-Given the standard deviation very small, the algorithm converges in barely 4 iterations. Here the plots in 2 and 3 dimensions:\\ \\
-\begin{figure}[H]
-\centering
-\includegraphics[width=6.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/cluster2D}.png}
-\caption{Plot clusters in 2 dimensions}\label{2D}
-\end{figure}
-\begin{figure}[H]
-\centering
-\includegraphics[width=7.7cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/cluster3D}.png}
-\caption{Plot clusters in 3 dimensions}\label{3D}
-\end{figure}
-
-
-
-
-\section{Sequential version}
-Sequential version of the K-means algorithm consists to calculate and update the new centroids until they differ from the old centroids less than the $\epsilon$ value. 
-Here is the pseudocode of the sequential version:
-\begin{algorithm}
-\label{sequenziale}
-\caption{Sequential version}
+\label{Training the model}
+\caption{Training the model}
 \begin{algorithmic}
-	\While{centroids change}
-    		\For{each point}
-			\State point.setCluster()
+	\State Inizialize classifier;
+    		\For{each tweet} \do \\
+			\State classifier.handle(tweet)
 		\EndFor
-    		\State upgradeCentroids();
-   	 \EndWhile
+    		\State saveModel()	
 \end{algorithmic}
 \end{algorithm} 
 \\
-The choice of the $\epsilon$ value may affect the speed and the precision of the algorithm. The points are definited as PointND object. It consists in vector of floats i.e. the coordinates and the attribute Cluster. Cluster is an integer-type that indicates the class to which each point corresponds. During each iteration of the K-means the points don't change, but may occur to the Cluster. An other important data structure is the vector of PointND, used to define the list of centroids.
-Each point of the dataset is visited sequentially to calculate the distance from the $K$ centroids.
+The object tweet is defined as his sentiment (negative or positive) and the text. Each tweet read is used to train the model. The classifier is then stored in \lq\lq model.txt" and it will be used to classify new tweets.
 
-\section{Parallel version}
-OpenMP  is  a  standard  Application  Programming 
-Interface of C, C++ and FORTRAN for a shared memory 
-parallel programming. It allows to parallelize the execution of K-means in a very simple way.
-In fact, after definited the number of $threads$, the command \emph{\#pragma omp parallel for} allows to each $thread$ to compute an 
-indipendent part of the data. This is possible because each iteration is indipendent from the other one.
-Given that the steps are the same for each data point, static schedule is assigned by default.
-Here is the pseudocode of the parallel version:
+\section{Classification}
+The classification phase consists in classifing new tweets, not always used in the training part. In particular, we consider the sequential and the distributed version.
+\subsection{Sequential version}
+Sequential classification is very easy. Here is the pseudocode:\\
 \begin{algorithm}
-\label{parallelo}
-\caption{Parallel version}
+\label{Sequential classification}
+\caption{Sequential classification}
 \begin{algorithmic}
-	\While{centroids change}
-		\State \#pragma omp parallel for
-    		\For{each point}
-			\State point.setCluster()
-		\EndFor
-    		\State upgradeCentroids();
-   	 \EndWhile
+\State model=LoadModel()
+\State pos=0
+\State neg=0
+    	\For{each tweet} \do \\
+		\State classified=classify(model, tweet).bestCategory()
+		\State \textbf{if}  classified==\lq\lq0"
+			\State\hspace{\algorithmicindent} neg=neg+1
+		\State \textbf{else} 
+		\State\hspace{\algorithmicindent}pos=pos+1
+		\State \textbf{end if} 
+	\EndFor 	
+\State \Return pos, neg
 \end{algorithmic}
-\end{algorithm}
-\\Note that "upgradeCentroids()" isn't parallelized. If we parallelize that with \emph{Pragma OpenMP}, different data points might be added to the sum of them to calculate the centroid
- at the same time, leading to Write-After-Write (WAW) hazard. It happens when different threads save their results to the same variable causing the loss of results of the previous threads.
+\end{algorithm} \\
+The program uses the model trained before to classify each tweet. It returns the number of tweets classified as positive and negative .
+\subsection{Distributed version}
+Distributed version is performed with MapReduce framework. MapReduce is a processing technique and a program model for distributed computing based on Java. The MapReduce algorithm contains two important tasks, namely Map and Reduce.  Map takes a set of data and converts it into another set of data, where individual elements are broken down into tuples (key/value pairs). Secondly, reduce task, which takes the output from a map as an input and combines those data tuples into a smaller set of tuples. The major advantage of MapReduce is that it is easy to scale data processing over multiple computing nodes. Here is the pseudocode of the map function:\\
+\begin{algorithm}
+\label{Map}
+\caption{Map}
+\begin{algorithmic}
+\State model=addCacheFile(model)
+\State classified=classify(model, tweet).bestCategory()
+\State \Return classified, 1
+\end{algorithmic}
+\end{algorithm} \\
+In order to improve the performances, the model file is added to the distributed cache. In this way, the file becomes available to all map tasks. The type of the tweet text is Text while the value is IntWritable. These types are the Hadoop variant of Integer and String which have been optimized for serialization in the Hadoop environment. An integer would use the default Java Serialization which is very costly in Hadoop environment. The map function classifies the tweet and returns the sentiment classified and the value 1.\\
+The output obtained is a data set of tuples (key/value pairs). The reduce function takes the output from a map and counts the number of positive and negative tweets classified.
+\begin{algorithm}
+\label{Reduce}
+\caption{Reduce}
+\begin{algorithmic}
+\State count=0
+    	\For{each tuple with same key k} \do \\
+		\State count=count+1
+	\EndFor 
+\State \Return k, count
+\end{algorithmic}
+\end{algorithm} \\
+Here is the pseudocode:\\ \\
+With multiple reducers, we need some way to determine the appropriate one to send a (key/value) pair outputted by a mapper. The partition phase takes place after the Map phase and before the Reduce phase. In this phase, all the values for each key returned from the mapper are grouped together, making sure that all the values of a single key go to the same reducer.
+\\The distributed version is performed with Amazon EMR.
+\subsection{EMR}
+Amazon Elastic MapReduce (EMR) provides tools for big data processing and analysis, across a Hadoop cluster of virtual servers on Amazon Elastic Compute Cloud (EC2) and Amazon Simple Storage Service (S3). A cluster is a collection of nodes. A node is a process running on a virtual or physical machine. In the following analysis, each node has a r4.xlarge istance with four cores and 30.5 GB of RAM. The data sets are stored in Amazon S3. In the analysis I use a master node to manage from 2 to 6 slave nodes.
 
-
-\section{Speedup}
+\section{Speedup analysis}
 Speedup is an index that measures the relative performance of two systems processing the same problem.
 It is defined as: $$S_p=t_s/t_p$$ where P is the number of processors, $t_s$ is the completion time of the sequential 
-algorithm and $t_p$ is the completion time of the parallel algorithm. Here is some Speedup types:
+algorithm and $t_p$ is the completion time of distributed version. Here is some speedup types:
 \begin{figure}[H]
 \centering
-\includegraphics[width=5.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/types"}.png}
+\includegraphics[width=6.0cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/types"}.png}
 \caption{Speedup types}\label{types}
 \end{figure}
 Types:\\
@@ -158,196 +148,82 @@ Types:\\
 2. Sub-linear speedup\\
 3. Speedup with an optimal number of processors\\
 4. No speedup\\
-5. Super-linear Speedup\\
+5. Super-linear speedup\\
 \\
-In order to analyze the speedup for this problem, different datasets are considerated.
-The first example shows the results from the hardware of my laptop. 
-In the other examples I used an istance from Amazon AWS.
+In order to analyze the speedup, different examples are considerated with Amazon EMR. For the sequential version, I just used a r4.xlarge istance in Amazon EC2.
 
-\subsection{500k points}
-\textbf{Dataset}: 500k points in 3 dimensions from Gaussian distribution with mean 0 and standard deviation 1. \\
-\textbf{Parameters}: $\epsilon$=0.001 and $K$=3. \\
-\textbf{Processor}: Intel(R) Core(TM) i5-6200U CPU @ 2.30GHz, 2401 Mhz, 2 Core(s), 4 Logical Processor(s). \\
-\textbf{number iterations}: 121 \\
-\textbf{Results}\\
-1 thread:{ } \quad186.833 seconds\\
-2 threads: \quad131.318 seconds\\
-3 threads: \quad128.658 seconds\\
-4 threads: \quad109.824 seconds\\
-5 threads: \quad113.157 seconds\\
-6 threads: \quad111.582 seconds\\
-7 threads: \quad112.294 seconds\\
-Increasing the number of threads the overhead increases, so we need to find the optimal number of threads. In particular, 4 threads is the optimal choice.
-
-\subsection{2M points}
-\textbf{Dataset}: 2 millions points in 4 dimensions from Gaussian distributions with mean 1 and standard deviation 1. \\
-\textbf{Parameters}: $\epsilon$=0.001 and $K$=3. \\
-\textbf{Processor}: t2.2xlarge Linux/UNIX Amazon Ec2 Spot Instance with 8 vCPUs. \\
-\textbf{number iterations}: 229\\
-\textbf{Results}:\\
-1 thread:{ } \quad 929.932 seconds\\
-2 threads: \quad554.635 seconds\\
-3 threads: \quad434.368 seconds\\
-4 threads: \quad375.278 seconds\\
-5 threads: \quad340.358 seconds\\
-6 threads: \quad317.651 seconds\\
-7 threads: \quad301.631 seconds\\
-8 threads: \quad295.699 seconds\\
-9 threads: \quad317.819 seconds\\
-10 threads:\quad307.321 seconds\\
+\subsection{1000 tweets}
+Hadoop is not a good solution for small data. In this first example the model classifies a sample of 1000 tweets. We can see that the sequential version is faster than the distributed one.
 \begin{figure}[H]
 \centering
-\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/bar2M"}.png}
-\caption{Bar chart}\label{bar2M}
+\includegraphics[width=6.8cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Twitter/Immagini/1000"}.png}
+\caption{Speedup 1000 tweets}\label{types}
 \end{figure}
 \begin{figure}[H]
 \centering
-\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/speedup2M"}.png}
-\caption{Speedup OpenMP}\label{speedup2M}
+\includegraphics[width=6.8cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Twitter/Immagini/1000b"}.png}
+\caption{Barplot 1000 tweets}\label{types}
 \end{figure}
+The reason is that there is always some initial delay while running MapReduce jobs, for example checking input/output paths, split creation, map creation, management of the tasks etc. In this case sequential version is preferable.
 
-\section{Further parallelization}
-A further parallelization of the problem is possible. In fact, after calculating the distance between points and centroids, it's possible to
-parallelize the external loop of the calculation of the new centroids. In this way, each thread calculate the new centroid of a different cluster.
-For istance, thread 0 computes the cluster 0, thread 1 computes the cluster 1 etc.. . It is important therefore that $K$ is big enough, to use 
-all cores availables. Given that the steps are the same for each cluster. There are slight differences between static and dynamic schedule.
-Static schedule is assigned by default.\\
-Here is the pseudocode of the new parallel version:
-\begin{algorithm}
-\label{newparallelo}
-\caption{Parallel version}
-\begin{algorithmic}
-	\While{centroids change}
-		\State \#pragma omp parallel for
-    		\For{each point}
-			\State point.setCluster()
-		\EndFor
-		\State \#pragma omp parallel for
-		\For{each K}
-    		\State upgradeCentroid();
-		\EndFor
-   	 \EndWhile
-\end{algorithmic}
-\end{algorithm}
-
- Now we consider the same example of the subsection 5.2. with the further parallelization. Even though all cores are not used given 
-that $K=3$, we expect an improvement of the performances. Same istance of amazon EC2 is used with
-8 vCPUs. \\
-\subsection{2M points with further parallelization}
-\textbf{Dataset}: 2 millions points in 4 dimensions from Gaussian distributions with mean 1 and standard deviation 1. \\
-\textbf{Parameters}: $\epsilon$=0.001 and $K$=3. \\
-\textbf{Processor}: t2.2xlarge Linux/UNIX Amazon Ec2 Spot Instance with 8 vCPUs. \\
-\textbf{number iterations}: 229\\
-\textbf{Results}:\\
-1 thread:{ } \quad 929.932 seconds\\
-2 threads: \quad485.726 seconds\\
-3 threads: \quad314.031 seconds\\
-4 threads: \quad254.987 seconds\\
-5 threads: \quad219.757 seconds\\
-6 threads: \quad196.695 seconds\\
-7 threads: \quad180.139 seconds\\
-8 threads: \quad166.975 seconds\\
-9 threads: \quad197.157 seconds\\
-10 threads:\quad192.232 seconds\\ 
+\subsection{1.6M tweets}
+We consider now the classification of the entire data set of 1.6 millions of tweets.
 \begin{figure}[H]
 \centering
-\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/bar2Mnew"}.png}
-\caption{Bar chart}\label{bar2M}
+\includegraphics[width=6.8cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Twitter/Immagini/norm"}.png}
+\caption{Speedup 1.6M tweets}\label{types}
 \end{figure}
+As we can see Hadoop has not a good performance also this time. By default, in fact, EMR considers just 2 mappers if the input size is only one file. In addiction, time to manage and move data to the distributed environment is required.
+
+\subsection{1.6M tweets in 5 input splits}
+In order to improve the performances, original data set is divided in 5 input data. Each split becomes input of each mapper and will be stored in the slave data node. The number of input data determines the number of mappers. 
 \begin{figure}[H]
 \centering
-\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/speedup2Mnew"}.png}
-\caption{Speedup OpenMP}\label{speedup2M}
+\includegraphics[width=6.8cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Twitter/Immagini/5norm"}.png}
+\caption{Speedup 1.6M tweets}\label{types}
 \end{figure}
-We can note a big improvement. With 8 threads the new speedup is 5.57 against the old one with 3.14.
-In this case the speedup trend is linear until thread 8, in fact with 9 and 10 threads it leads in a overhead.
+Finally we note good improvements. The reason is that for each input split Hadoop creates one map task to process records in that input split. That is how parallelism is achieved in Hadoop framework. 
 
-\subsection{K-means performances changing K}
-The biggest disadvantage of the second parallelization is that the number of threads used depends on the value of $K$.
-As we can see in the example below, it's also hard to evaluate the effective speedup performance when we change the value of $K$.\\
-The used dataset refers to 200k points from normal distribution with mean 0 and standard deviation 1. In this example $K$ changes but $\epsilon$
-is fixed to 0.01. In the first parallelization we set 8 threads i.e. the number of vCPUs on the t2.2xlarge istance, while in the second the number of threads is exactly $K$.\\ \\
-\begin{tabular}{ |p{1cm}||p{1.5cm}|p{1.5cm}|p{1.5cm}| }
- \hline
-\textbf{K} & \textbf{Sequential time} &\textbf{Parallel time}&\textbf{Speedup}\\
- \hline  \hline
-2     &68.62      & 14.91 & 4.60   \\
-3     & 29.58         &6.49 & 4.56	\\
-4     & 28.38       &   5.89 & 4.81\\
-5     & 98.03          &15.29& 6.41 \\
-6     & 135.06      &19.70 & 6.85\\
-7     &  50.65       &8.26&6.13 \\
-8     & 131.08          &18.25&  7.18 \\
-9     & 130.24       &19.88 & 6.55\\
-10    & 89.14       &13.95&  6.39\\
- \hline
-\end{tabular}
-\\ \\In fact it may happen that bigger $K$ converge with fewer iterations, leading to the overhead and afecting the speedup performance.
+
+\subsection{1.6M tweets in 10 input splits}
+Let's consider 10 input splits in the original data set.
 \begin{figure}[H]
 \centering
-\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/200k"}.png}
-\caption{Speedup}\label{200k}
+\includegraphics[width=6.8cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Twitter/Immagini/10norm"}.png}
+\caption{Speedup 1.6M tweets}\label{types}
 \end{figure}
-In this example, $K$=3 and $K$=7 have worst performance than some their lower values.\\ 
-In order to evaluate correctly the speedup performances, we sightly change the algorithm. We remove the $\epsilon$ parameter
-and we iterate the algorithm a fixed number of times. Here is the pseudocode:
-\begin{algorithm}
-\label{newparallelo}
-\caption{Parallel version}
-\begin{algorithmic}
-	\While{count$\leq$200}
-		\State \#pragma omp parallel for
-    		\For{each point}
-			\State point.setCluster()
-		\EndFor
-		\State \#pragma omp parallel for
-		\For{each K}
-    		\State upgradeCentroid()
-		\EndFor
-		\State count++
-   	 \EndWhile
-\end{algorithmic}
-\end{algorithm}
-
-Here the new speedup analysis with 200 iterations of the same dataset with 200k points:\\
-\begin{tabular}{ |p{1cm}||p{1.5cm}|p{1.5cm}|p{1.5cm}| }
- \hline
-\textbf{K} & \textbf{Sequential time} &\textbf{Parallel time}&\textbf{Speedup}\\
- \hline  \hline
-2     & 47.13      & 11.19 & 4.21   \\
-3     & 63.63         &12.49 & 5.10	\\
-4     & 77.96       &  13.89 &  5.61\\
-5     & 92.94          &15.54&5.98 \\
-6     & 104.94      &16.70 & 6.28\\
-7     & 120.33       &18.49&6.50 \\
-8     & 133.82          &19.97& 6.70 \\
-9     & 149.23        &23.90 & 6.24\\
-10    & 161.50         &25.44& 6.35\\
- \hline
-\end{tabular} \\ \\
-and here is the speedup plot:\\ \\
+With 6 nodes we achieve 6 of speedup. There is the same trend of the previous example but with speedup higher.
+%\vspace{4cm}
+\subsection{4.8M tweets in 10 input splits}
+Hadoop works well with huge amount of data. In order to reduce the impact of the initialization time, the data set is tripled. The new data set contains 4.8 millions tweets. 
 \begin{figure}[H]
 \centering
-\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/new200k"}.png}
-\caption{Speedup}\label{new200k}
+\includegraphics[width=6.8cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Twitter/Immagini/10x3norm"}.png}
+\caption{Speedup 4.8M tweets}\label{types}
 \end{figure}
+In fact, we can see that using 6 nodes, Hadoop allows us to obtain a speedup of almost 9, rather than 6 in the previous example.
+This example dimostrates us the importance of choosing the number of maps.
 
-
-\subsection{Inefficient parallelization}
-There are few cases in which the parallelization is not convenient. In these cases, we should use the sequential version.
-Let's consider a dataset with barely 10 observations. As we can see below, it isn't convenient to parallelize the problem in which it leads to the overhead.
+\subsection{4.8M tweets in 20 input splits}
+In this last example, we consider 20 input splits. As we can see, we obtain still better performances only using more then 5 nodes.
 \begin{figure}[H]
 \centering
-\includegraphics[width=7.5cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Progetto/Immagini/speedup10"}.png}
-\caption{Speedup}\label{10}
+\includegraphics[width=6.8cm]{{"C:/Users/Francesco/Desktop/unifi/Magistrale/Parallel Computing/Twitter/Immagini/20x3norm"}.png}
+\caption{Speedup 4.8M tweets}\label{types}
 \end{figure}
-The plot shows that there isn't speedup and the sequential version is even more fast than parallel version.
+The trend is linear. Increasing the number of nodes we expect an increasement of the speedup. The program seems to be scalable.
 
-\subsection{Conclusions}
-In this paper we compared sequential and parallel version of the K-means algorithm with OpenMP. 
-We used different example to show the performances. Most of the time the parallel version is preferable rather than the sequential version.
-In fact, in some cases we reached over 7 of speedup using 8 cores. OpenMP has proven to be a great candidate for the parallelization of this problem. 
-Future developments could affect other types of clustering methods like DB-SCAN and Mean Shift.
+
+\section{Conclusions}
+In this paper I compared the sequential and distributed version of the Twitter sentimental analysis with Hadoop framework. For data set big enough, distributed version is preferible for the time spent and the amount of data processable in the same time. In some cases it achieved a speed-up of 9 or more with 6 nodes. Hadoop has dimostrated to be a valid solution for processing of huge amount of data. 
+
+
+
+
+
+
+
+
 
 
 
@@ -359,28 +235,6 @@ Future developments could affect other types of clustering methods like DB-SCAN 
 
 
 \end{document}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
