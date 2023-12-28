@@ -8,3 +8,5 @@ implementation has benefits regarding its speed and the
 amount of data processed in the same quantity of time.  <br />
 More informations can be found in the Paper folder.  <br />
 You can find the code of the project in the Kmeans folder.
+
+![Image detection](Immagini/cluster2D.png)
