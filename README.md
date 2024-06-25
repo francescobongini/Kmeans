@@ -10,3 +10,4 @@ More informations can be found in the Paper folder.  <br />
 You can find the code of the project in the Kmeans folder.
 
 ![Image detection](Immagini/cluster2D.png)
+![Image detection](Immagini/speedup2Mnew.png)
