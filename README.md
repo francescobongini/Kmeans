@@ -15,6 +15,7 @@ K-means is an unsupervised learning algorithm for clustering problems:
 2. Assign each point to the nearest centroid
 3. Recalculate centroid positions as the mean of assigned points
 4. Repeat steps 2-3 until convergence (centroids no longer change)
+   
 ![Image detection](Immagini/cluster2D.png)
 ## Parallelization Strategies
 
