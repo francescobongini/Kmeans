@@ -15,7 +15,7 @@ K-means is an unsupervised learning algorithm for clustering problems:
 2. Assign each point to the nearest centroid
 3. Recalculate centroid positions as the mean of assigned points
 4. Repeat steps 2-3 until convergence (centroids no longer change)
-
+![Image detection](Immagini/cluster2D.png)
 ## Parallelization Strategies
 
 ### First Parallelization
@@ -53,5 +53,19 @@ end while
 
 **Key Finding**: The enhanced parallelization achieved a speedup of 5.57x with 8 threads (vs. 3.14x in the first version).
 
-![Image detection](Immagini/cluster2D.png)
-![Image detection](Immagini/speedup2Mnew.png)
+### Variable K Analysis (200K Points, 200 iterations)
+
+| K | Sequential (s) | Parallel (s) | Speedup |
+|---|----------------|--------------|---------|
+| 2 | 47.13 | 11.19 | 4.21x |
+| 5 | 92.94 | 15.54 | 5.98x |
+| 8 | 133.82 | 19.97 | **6.70x** |
+
+## Key Insights
+
+- Linear speedup observed up to the number of available cores
+- Performance depends on K value in the second parallelization approach
+- Overhead occurs when using more threads than available vCPUs
+- Fixed iteration count provides more consistent speedup measurements than convergence-based stopping
+
+![Image detection](Immagini/new200k.png)
