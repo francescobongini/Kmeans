@@ -61,6 +61,7 @@ end while
 | 5 | 92.94 | 15.54 | 5.98x |
 | 8 | 133.82 | 19.97 | **6.70x** |
 
+![Image detection](Immagini/new200k.png)
 ## Key Insights
 
 - Linear speedup observed up to the number of available cores
@@ -68,4 +69,4 @@ end while
 - Overhead occurs when using more threads than available vCPUs
 - Fixed iteration count provides more consistent speedup measurements than convergence-based stopping
 
-![Image detection](Immagini/new200k.png)
+
